@@ -1,18 +1,18 @@
-var _ = require('lodash');
+var _ = require('lodash')
 
 function sum (arr) {
 	return arr.reduce(function (p, c, i, a) {
-		return p + c;
-	});
+		return p + c
+	})
 }
 
 function ensureArr (arr) {
-	if (_.isArray(arr)) {
-		return arr;
+	if (Array.isArray(arr)) {
+		return arr
 	} else if (typeof arr === 'string') {
-		return arr.split('');
+		return arr.split('')
 	} else {
-		throw Error('Parameter must be a string or array.');
+		throw Error('Parameter must be a string or array.')
 	}
 }
 
@@ -44,78 +44,78 @@ function ensureArr (arr) {
  * the two provided arrays.
  */
 exports.jarowinkler = function (a, b, t) {
-	a = ensureArr(a);
-	b = ensureArr(b);
+	a = ensureArr(a)
+	b = ensureArr(b)
 
-	var max, min;
+	var max, min
 	if (a.length > b.length) {
-		max = a;
-		min = b;
+		max = a
+		min = b
 	} else {
-		max = b;
-		min = a;
+		max = b
+		min = a
 	}
-	var threshold = t ? t : .7;
-	var weight = .1;
-	var range = Math.floor(Math.max((max.length / 2) - 1, 0));
-	var mIdx = [];
-	var mFlg = [];
-	var mi, xi, xn, c1;
-	var matches = 0;
+	var threshold = t ? t : .7
+	var weight = .1
+	var range = Math.floor(Math.max((max.length / 2) - 1, 0))
+	var mIdx = []
+	var mFlg = []
+	var mi, xi, xn, c1
+	var matches = 0
 	for (mi = 0; mi < min.length; mi++) {
-		c1 = min[mi];
+		c1 = min[mi]
 		for (xi = Math.max(mi - range, 0), xn = Math.min(mi + range + 1, max.length);
 			 xi < xn;
 			 xi++) {
 			if (!mFlg[xi] && (c1 === max[xi])) {
-				mIdx[mi] = xi;
-				mFlg[xi] = true;
-				matches++;
-				break;
+				mIdx[mi] = xi
+				mFlg[xi] = true
+				matches++
+				break
 			}
 		}
 	}
 
-	var ma = [];
-	var mb = [];
-	var i, si;
-	var trans = 0;
-	var prefix = 0;
+	var ma = []
+	var mb = []
+	var i, si
+	var trans = 0
+	var prefix = 0
 	for (i = 0, si = 0; i < min.length; i++) {
 		if (mIdx[i] > -1) {
-			ma[si] = min[i];
-			si++;
+			ma[si] = min[i]
+			si++
 		}
 	}
 	for(i = 0, si = 0; i < max.length; i++) {
 		if (mFlg[i]) {
-			mb[si] = max[i];
-			si++;
+			mb[si] = max[i]
+			si++
 		}
 	}
 	for (mi = 0; mi < ma.length; mi++) {
 		if (ma[mi] !== mb[mi]) {
-			trans++;
+			trans++
 		}
 	}
 	for (mi = 0; mi < min.length; mi++) {
 		if (a[mi] === b[mi]) {
-			prefix++;
+			prefix++
 		} else {
-			break;
+			break
 		}
 	}
 
-	var m = matches;
-	var t = trans / 2;
+	var m = matches
+	var t = trans / 2
 	if (!m) {
-		return 0;
+		return 0
 	} else {
 		var j = (m / a.length + m / b.length + (m - t) / m) / 3
 		var jw = (j < threshold
 			? j
-			: (j + Math.min(weight, 1 / max.length) * prefix * (1 - j)));
-		return jw;
+			: (j + Math.min(weight, 1 / max.length) * prefix * (1 - j)))
+		return jw
 	}
 
 }
@@ -151,52 +151,52 @@ exports.jarowinkler = function (a, b, t) {
  * the two provided arrays.
  */
 exports.levenshtein = function (a, b, w) {
-	a = ensureArr(a);
-	b = ensureArr(b);
+	a = ensureArr(a)
+	b = ensureArr(b)
 
 	if (a.length === 0) {
-		return b.length;
+		return b.length
 	}
 	if (b.length === 0) {
-		return a.length;
+		return a.length
 	}
 
 	var weights = (w ? w : {
 		d: 1,
 		i: 1,
 		s: 1
-	});
-	var v0 = [];
-	var v1 = [];
-	var vlen = b.length + 1;
-	var i,j;
-	var cost;
-	var mlen;
+	})
+	var v0 = []
+	var v1 = []
+	var vlen = b.length + 1
+	var i,j
+	var cost
+	var mlen
 
 	for (i = 0; i < vlen; i++) {
-		v0[i] = i;
+		v0[i] = i
 	}
 
 	for (i = 0; i < a.length; i++) {
-		v1[0] = i + 1;
+		v1[0] = i + 1
 
 		for (j = 0; j < b.length; j++) {
-			cost = (a[i] === b[j]) ? 0 : weights.s;
+			cost = (a[i] === b[j]) ? 0 : weights.s
 			v1[j + 1] = Math.min(
 				v1[j] + weights.d,
 				v0[j + 1] + weights.i,
 				v0[j] + cost
-			);
+			)
 		}
 
 		for (j = 0; j < vlen; j++) {
-			v0[j] = v1[j];
+			v0[j] = v1[j]
 		}
 	}
 
-	mlen = Math.max(a.length, b.length);
+	mlen = Math.max(a.length, b.length)
 
-	return (mlen - v1[b.length]) / mlen;
+	return (mlen - v1[b.length]) / mlen
 }
 
 /**
@@ -228,91 +228,91 @@ exports.levenshtein = function (a, b, w) {
  * the two provided arrays.
  */
 exports.ngram = function (a, b, ng) {
-	a = ensureArr(a);
-	b = ensureArr(b);
+	a = ensureArr(a)
+	b = ensureArr(b)
 
-	var al = a.length;
-	var bl = b.length;
-	var n = (ng ? ng : 2);
-	var cost;
-	var i, j, ni, ti, tn, ec;
-	var sa = [];
-	var p  = [];
-	var d = [];
-	var _d = [];
-	var t_j = [];
-	var pdl = al + 1;
+	var al = a.length
+	var bl = b.length
+	var n = (ng ? ng : 2)
+	var cost
+	var i, j, ni, ti, tn, ec
+	var sa = []
+	var p  = []
+	var d = []
+	var _d = []
+	var t_j = []
+	var pdl = al + 1
 
 	// empty string situation
 	if ((al === 0) || (bl === 0)) {
 		if (al === bl) {
-			return 1;
+			return 1
 		} else {
-			return 0;
+			return 0
 		}
 	}
 
 	// smaller than n situation
-	cost = 0;
+	cost = 0
 	if ((al < n) || (bl < n)) {
 		for (i = 0, ni = Math.min(al, bl); i < ni; i++) {
 			if (a[i] === b[i]) {
-				cost++;
+				cost++
 			}
 		}
-		return cost / Math.max(al, bl);
+		return cost / Math.max(al, bl)
 	}
 
 	for (i = 0; i < (al + n - 1); i++) {
 		if (i < (n - 1)) {
-			sa[i] = 0;
+			sa[i] = 0
 		} else {
-			sa[i] = a[i - n + 1];
+			sa[i] = a[i - n + 1]
 		}
 	}
 
 	for (i = 0; i <= al; i++) {
-		p[i] = i;
+		p[i] = i
 	}
 
 	for (j = 1; j <= bl; j++) {
 		if (j < n) {
 			for (ti = 0; ti < (n - j); ti++) {
-				t_j[ti] = 0;
+				t_j[ti] = 0
 			}
 			for (ti = (n - j); ti < n; ti++) {
-				t_j[ti] = b[ti - (n - j)];
+				t_j[ti] = b[ti - (n - j)]
 			}
 		} else {
-			t_j = b.slice(j - n, j);
+			t_j = b.slice(j - n, j)
 		}
-		d[0] = j;
+		d[0] = j
 		for (i = 1; i <= al; i++) {
-			cost = 0;
-			tn = n;
+			cost = 0
+			tn = n
 			for (ni = 0; ni < n; ni++) {
 				if (sa[i - 1 + ni] !== t_j[ni]) {
-					cost++;
+					cost++
 				} else if (sa[i - 1 + ni] === 0) {
-					tn--;
+					tn--
 				}
 			}
-			ec = cost / tn;
+			ec = cost / tn
 			d[i] = Math.min(
 				Math.min(
 					d[i - 1] + 1,
 					p[i] + 1
 				),
 				p[i - 1] + ec
-			);
+			)
 		}
 
-		_d = p;
-		p = d;
-		d = _d;
+		_d = p
+		p = d
+		d = _d
 	}
 
-	return 1.0 - (p[al] / Math.max(al, bl));
+	return 1.0 - (p[al] / Math.max(al, bl))
 }
 
 /**
@@ -341,44 +341,44 @@ exports.ngram = function (a, b, ng) {
  * the two provided arrays.
  */
 exports.pearson = function (a, b) {
-	var sk = [];
+	var sk = []
 	Object.keys(a).forEach(function (k) {
 		if (b[k]) {
-			sk.push(k);
+			sk.push(k)
 		}
-	});
-	var n = sk.length;
+	})
+	var n = sk.length
 
 	if (n === 0) {
-		return 0;
+		return 0
 	}
 
 	var sa = sum(sk.map(function (k) {
-		return a[k];
-	}));
+		return a[k]
+	}))
 	var sb = sum(sk.map(function (k) {
-		return b[k];
-	}));
+		return b[k]
+	}))
 
 	var sas = sum(sk.map(function (k) {
-		return Math.pow(a[k], 2);
-	}));
+		return Math.pow(a[k], 2)
+	}))
 
 	var sbs = sum(sk.map(function (k) {
-		return Math.pow(b[k], 2);
-	}));
+		return Math.pow(b[k], 2)
+	}))
 
 	var sp = sum(sk.map(function (k) {
-		return a[k] * b[k];
-	}));
+		return a[k] * b[k]
+	}))
 
-	var num = sp - (sa * sb / n);
-	var den = Math.sqrt((sas - Math.pow(sa, 2) / n) * (sbs - Math.pow(sb, 2) / n));
+	var num = sp - (sa * sb / n)
+	var den = Math.sqrt((sas - Math.pow(sa, 2) / n) * (sbs - Math.pow(sb, 2) / n))
 
 	if (den === 0) {
-		return 0;
+		return 0
 	} else {
-		return num / den;
+		return num / den
 	}
 }
 
@@ -416,10 +416,10 @@ exports.pearson = function (a, b) {
  * the two provided arrays.
  */
 exports.jaccard = function (a, b) {
-	a = ensureArr(a);
-	b = ensureArr(b);
+	a = ensureArr(a)
+	b = ensureArr(b)
 
-	return (_.intersection(a, b).length / _.union(a, b).length);
+	return (_.intersection(a, b).length / _.union(a, b).length)
 }
 
 /**
@@ -455,9 +455,9 @@ exports.jaccard = function (a, b) {
  * the two provided arrays.
  */
 exports.tanimoto = function (a, b) {
-	a = ensureArr(a);
-	b = ensureArr(b);
+	a = ensureArr(a)
+	b = ensureArr(b)
 
-	var both = _.intersection(a, b).length;
-	return  (both / (a.length + b.length - both));
+	var both = _.intersection(a, b).length
+	return  (both / (a.length + b.length - both))
 }
